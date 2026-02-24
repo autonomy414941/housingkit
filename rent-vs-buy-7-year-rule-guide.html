@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rent vs Buy 7-Year Rule Guide - HousingKit</title>
+  <meta name="description" content="Understand how the rent-vs-buy 7-year rule works, when it fails, and how to model your own break-even horizon.">
+  <meta name="keywords" content="rent vs buy 7 year rule guide, renting vs buying horizon, homeownership break even">
+  <link rel="canonical" href="https://devtoolbox.dedyn.io/housingkit/rent-vs-buy-7-year-rule-guide.html">
+  <meta name="robots" content="index,follow">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Rent vs Buy 7-Year Rule Guide - HousingKit">
+  <meta property="og:description" content="Learn when the 7-year rent-vs-buy rule is useful and when scenario-specific modeling is required.">
+  <meta property="og:url" content="https://devtoolbox.dedyn.io/housingkit/rent-vs-buy-7-year-rule-guide.html">
+  <meta property="og:site_name" content="HousingKit">
+  <meta property="og:image" content="https://devtoolbox.dedyn.io/og/default.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Rent vs Buy 7-Year Rule Guide - HousingKit">
+  <meta name="twitter:description" content="Learn when the 7-year rent-vs-buy rule is useful and when scenario-specific modeling is required.">
+  <meta name="twitter:image" content="https://devtoolbox.dedyn.io/og/default.png">
+  <link rel="stylesheet" href="/housingkit/style.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Article",
+        "headline": "Rent vs Buy 7-Year Rule Guide",
+        "description": "A practical guide for evaluating the 7-year rent-vs-buy rule under real assumptions.",
+        "author": {
+          "@type": "Organization",
+          "name": "HousingKit"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "HousingKit"
+        },
+        "mainEntityOfPage": "https://devtoolbox.dedyn.io/housingkit/rent-vs-buy-7-year-rule-guide.html"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "HousingKit",
+            "item": "https://devtoolbox.dedyn.io/housingkit/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Guides",
+            "item": "https://devtoolbox.dedyn.io/housingkit/guides.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Rent vs Buy 7-Year Rule Guide",
+            "item": "https://devtoolbox.dedyn.io/housingkit/rent-vs-buy-7-year-rule-guide.html"
+          }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Why is seven years often used as a benchmark?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Seven years is a common benchmark because transaction costs and early-loan amortization often require multiple years before ownership can outperform renting."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can the break-even horizon be shorter or longer than seven years?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. High rent growth or favorable purchase terms can shorten break-even, while high taxes, maintenance, or selling costs can lengthen it."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What assumptions matter most in rent-vs-buy modeling?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "The biggest drivers are stay duration, rent growth, mortgage rate, property taxes, maintenance, appreciation, and buy/sell transaction costs."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <div class="site-wrap">
+    <header class="topbar">
+      <a class="brand" href="/housingkit/">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span>HousingKit</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/housingkit/">Home</a>
+        <a href="/housingkit/guides.html">Guides</a>
+        <a href="/housingkit/rent-vs-buy-calculator.html">Rent vs Buy Calculator</a>
+        <a href="/housingkit/mortgage-calculator.html">Mortgage Calculator</a>
+        <a href="/kits/">All Kits</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="panel hero">
+        <h1>Rent vs Buy 7-Year Rule Guide</h1>
+        <p>Use the 7-year rule as a starting heuristic, then replace it with scenario-based math.</p>
+      </section>
+
+      <section class="panel card">
+        <h2>What the 7-year rule means</h2>
+        <p>The rule suggests buying is often more favorable if you expect to stay around seven years or longer. The intuition is that upfront transaction costs need time to amortize, and equity builds slowly in early mortgage years.</p>
+      </section>
+
+      <section class="panel card" style="margin-top:14px;">
+        <h2>When the rule fails</h2>
+        <p>The seven-year benchmark can break in either direction depending on local costs and assumptions.</p>
+        <ul>
+          <li>Shorter break-even: high rents, modest purchase costs, stronger appreciation</li>
+          <li>Longer break-even: high taxes, large maintenance burden, high sell costs, low expected hold period</li>
+          <li>Uncertain break-even: probable move within a few years</li>
+        </ul>
+      </section>
+
+      <section class="panel card" style="margin-top:14px;">
+        <h2>Scenario matrix to run</h2>
+        <p>Model at least three scenarios before deciding:</p>
+        <ul>
+          <li>Conservative: lower appreciation, higher maintenance, higher sell costs</li>
+          <li>Baseline: current best estimate</li>
+          <li>Optimistic: stronger appreciation and stable ownership costs</li>
+        </ul>
+        <p class="small">If buying only wins in optimistic assumptions, the decision is fragile.</p>
+      </section>
+
+      <section class="panel card" style="margin-top:14px;">
+        <h2>Decision checkpoint</h2>
+        <ul>
+          <li>Expected stay duration exceeds your modeled break-even by a safe margin</li>
+          <li>Post-closing reserves remain healthy</li>
+          <li>Total net cost win is robust across conservative and baseline scenarios</li>
+          <li>Lifestyle and job-location flexibility are still acceptable</li>
+        </ul>
+      </section>
+
+      <section class="panel card" style="margin-top:14px;">
+        <h3>Run the Numbers</h3>
+        <p class="small">Use the <a href="/housingkit/rent-vs-buy-calculator.html">Rent vs Buy Calculator</a> to model total net cost over your expected stay, then sanity-check payment structure with the <a href="/housingkit/mortgage-calculator.html">Mortgage Calculator</a>.</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

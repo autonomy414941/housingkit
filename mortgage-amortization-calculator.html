@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mortgage Amortization Calculator - HousingKit</title>
+  <meta name="description" content="Generate a mortgage amortization schedule with month-by-month principal, interest, and remaining balance. Test extra payment scenarios.">
+  <meta name="keywords" content="mortgage amortization calculator, amortization schedule calculator, mortgage payoff calculator, extra payment mortgage calculator">
+  <link rel="canonical" href="https://devtoolbox.dedyn.io/housingkit/mortgage-amortization-calculator.html">
+  <meta name="robots" content="index,follow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Mortgage Amortization Calculator - HousingKit">
+  <meta property="og:description" content="See month-by-month mortgage payoff with principal, interest, remaining balance, and extra-payment impact.">
+  <meta property="og:url" content="https://devtoolbox.dedyn.io/housingkit/mortgage-amortization-calculator.html">
+  <meta property="og:site_name" content="HousingKit">
+  <meta property="og:image" content="https://devtoolbox.dedyn.io/og/default.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Mortgage Amortization Calculator - HousingKit">
+  <meta name="twitter:description" content="Generate a monthly amortization table and test extra-payment payoff impact.">
+  <meta name="twitter:image" content="https://devtoolbox.dedyn.io/og/default.png">
+  <link rel="stylesheet" href="/housingkit/style.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "name": "HousingKit Mortgage Amortization Calculator",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Any",
+        "url": "https://devtoolbox.dedyn.io/housingkit/mortgage-amortization-calculator.html"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "HousingKit",
+            "item": "https://devtoolbox.dedyn.io/housingkit/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Mortgage Amortization Calculator",
+            "item": "https://devtoolbox.dedyn.io/housingkit/mortgage-amortization-calculator.html"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <div class="site-wrap">
+    <header class="topbar">
+      <a class="brand" href="/housingkit/">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span>HousingKit</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/housingkit/">Home</a>
+        <a href="/housingkit/mortgage-calculator.html">Mortgage</a>
+        <a href="/housingkit/home-affordability-calculator.html">Affordability</a>
+        <a href="/housingkit/refinance-break-even-calculator.html">Refinance</a>
+        <a href="/housingkit/rent-vs-buy-calculator.html">Rent vs Buy</a>
+        <a href="/housingkit/guides.html">Guides</a>
+        <a href="/kits/">All Kits</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="panel hero">
+        <h1>Mortgage Amortization Calculator <span class="badge">Month by month</span></h1>
+        <p>Generate a payment schedule with principal, interest, and remaining balance. Add extra monthly payments to test payoff acceleration.</p>
+      </section>
+
+      <section class="panel card">
+        <div class="grid form-grid">
+          <div>
+            <label for="loanAmount">Loan amount ($)</label>
+            <input id="loanAmount" type="number" min="1000" step="1000" value="340000">
+          </div>
+          <div>
+            <label for="interestRate">Interest rate (%)</label>
+            <input id="interestRate" type="number" min="0" step="0.01" value="6.25">
+          </div>
+          <div>
+            <label for="loanYears">Loan term (years)</label>
+            <input id="loanYears" type="number" min="1" max="50" step="1" value="30">
+          </div>
+          <div>
+            <label for="extraPayment">Extra monthly payment ($)</label>
+            <input id="extraPayment" type="number" min="0" step="10" value="0">
+          </div>
+          <div>
+            <label for="rowsToShow">Rows to show</label>
+            <select id="rowsToShow">
+              <option value="12">First 12 months</option>
+              <option value="24" selected>First 24 months</option>
+              <option value="60">First 60 months</option>
+              <option value="9999">Full schedule</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" onclick="runCalc()">Build Amortization Schedule</button>
+        </div>
+
+        <div id="result" class="result" role="status" aria-live="polite">
+          Enter values and run calculation.
+        </div>
+
+        <div id="scheduleWrap" class="result" style="display:none; margin-top:12px; overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; min-width:660px; font-size:0.92rem;">
+            <thead>
+              <tr style="background:#f3f6ef; border-bottom:1px solid #d8dfd3;">
+                <th style="text-align:left; padding:8px;">Month</th>
+                <th style="text-align:right; padding:8px;">Payment</th>
+                <th style="text-align:right; padding:8px;">Principal</th>
+                <th style="text-align:right; padding:8px;">Interest</th>
+                <th style="text-align:right; padding:8px;">Extra</th>
+                <th style="text-align:right; padding:8px;">Balance</th>
+              </tr>
+            </thead>
+            <tbody id="scheduleBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel card" style="margin-top:14px;">
+        <h3>How to interpret this</h3>
+        <p class="small">Early payments are interest-heavy and principal-light. Extra monthly payments usually reduce total interest more than one-time late lump sums.</p>
+        <p class="small">Related tools: <a href="/housingkit/mortgage-calculator.html">Mortgage Calculator</a> and <a href="/housingkit/refinance-break-even-calculator.html">Refinance Break-Even Calculator</a>. Related guide: <a href="/housingkit/refinance-break-even-guide.html">Refinance Break-Even Guide</a>.</p>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function formatMoney(value) {
+      return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+    }
+
+    function basePayment(principal, annualRatePct, years) {
+      const months = years * 12;
+      if (months <= 0) {
+        return 0;
+      }
+      const r = annualRatePct / 100 / 12;
+      if (r === 0) {
+        return principal / months;
+      }
+      return principal * r / (1 - Math.pow(1 + r, -months));
+    }
+
+    function simulate(principal, annualRatePct, years, extraPayment) {
+      const r = annualRatePct / 100 / 12;
+      const monthlyBase = basePayment(principal, annualRatePct, years);
+      const maxMonths = years * 12;
+      let balance = principal;
+      let month = 0;
+      let totalInterest = 0;
+      const rows = [];
+
+      while (balance > 0.01 && month < maxMonths + 600) {
+        month += 1;
+        const interest = r === 0 ? 0 : balance * r;
+        let principalPaid = monthlyBase - interest + extraPayment;
+        if (principalPaid <= 0) {
+          break;
+        }
+        if (principalPaid > balance) {
+          principalPaid = balance;
+        }
+
+        const payment = principalPaid + interest;
+        balance -= principalPaid;
+        if (balance < 0.01) {
+          balance = 0;
+        }
+
+        totalInterest += interest;
+        rows.push({
+          month,
+          payment,
+          principalPaid,
+          interest,
+          extra: extraPayment,
+          balance
+        });
+      }
+
+      return {
+        rows,
+        totalInterest,
+        payoffMonths: rows.length,
+        monthlyBase
+      };
+    }
+
+    function runCalc() {
+      const loanAmount = Number(document.getElementById("loanAmount").value);
+      const interestRate = Number(document.getElementById("interestRate").value);
+      const loanYears = Number(document.getElementById("loanYears").value);
+      const extraPayment = Number(document.getElementById("extraPayment").value);
+      const rowsToShow = Number(document.getElementById("rowsToShow").value);
+      const result = document.getElementById("result");
+      const scheduleWrap = document.getElementById("scheduleWrap");
+      const scheduleBody = document.getElementById("scheduleBody");
+
+      if (loanAmount <= 0 || loanYears <= 0 || interestRate < 0 || extraPayment < 0) {
+        result.className = "result warn";
+        result.textContent = "Enter valid positive values. Interest rate and extra payment cannot be negative.";
+        scheduleWrap.style.display = "none";
+        return;
+      }
+
+      const baseline = simulate(loanAmount, interestRate, loanYears, 0);
+      const withExtra = simulate(loanAmount, interestRate, loanYears, extraPayment);
+
+      if (withExtra.rows.length === 0) {
+        result.className = "result warn";
+        result.textContent = "Inputs produce no payoff schedule. Increase term or reduce interest rate.";
+        scheduleWrap.style.display = "none";
+        return;
+      }
+
+      const monthsSaved = Math.max(0, baseline.payoffMonths - withExtra.payoffMonths);
+      const interestSaved = Math.max(0, baseline.totalInterest - withExtra.totalInterest);
+      const years = Math.floor(withExtra.payoffMonths / 12);
+      const months = withExtra.payoffMonths % 12;
+
+      result.className = "result ok";
+      result.innerHTML =
+        "<strong>Estimated monthly principal + interest: " + formatMoney(withExtra.monthlyBase) + "</strong>" +
+        "<ul>" +
+        "<li>Loan payoff timeline: " + years + " years " + months + " months (" + withExtra.payoffMonths + " months)</li>" +
+        "<li>Total interest with current extra payment: " + formatMoney(withExtra.totalInterest) + "</li>" +
+        "<li>Interest saved vs no extra payment: " + formatMoney(interestSaved) + "</li>" +
+        "<li>Months saved vs no extra payment: " + monthsSaved + "</li>" +
+        "</ul>";
+
+      const visibleRows = withExtra.rows.slice(0, rowsToShow);
+      scheduleBody.innerHTML = visibleRows.map((row) => {
+        return "<tr style='border-bottom:1px solid #e5ebe0;'>" +
+          "<td style='padding:8px; text-align:left;'>" + row.month + "</td>" +
+          "<td style='padding:8px; text-align:right;'>" + formatMoney(row.payment) + "</td>" +
+          "<td style='padding:8px; text-align:right;'>" + formatMoney(row.principalPaid) + "</td>" +
+          "<td style='padding:8px; text-align:right;'>" + formatMoney(row.interest) + "</td>" +
+          "<td style='padding:8px; text-align:right;'>" + formatMoney(row.extra) + "</td>" +
+          "<td style='padding:8px; text-align:right;'>" + formatMoney(row.balance) + "</td>" +
+        "</tr>";
+      }).join("");
+      scheduleWrap.style.display = "block";
+    }
+
+    runCalc();
+  </script>
+</body>
+</html>

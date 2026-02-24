@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Refinance Break-Even Calculator - HousingKit</title>
+  <meta name="description" content="Compare current and proposed refinance terms to estimate monthly savings, break-even timing, and net cost difference.">
+  <meta name="keywords" content="refinance break even calculator, mortgage refinance calculator, should i refinance">
+  <link rel="canonical" href="https://devtoolbox.dedyn.io/housingkit/refinance-break-even-calculator.html">
+  <meta name="robots" content="index,follow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Refinance Break-Even Calculator - HousingKit">
+  <meta property="og:description" content="Estimate refinance timing and total-cost impact based on your remaining balance and terms.">
+  <meta property="og:url" content="https://devtoolbox.dedyn.io/housingkit/refinance-break-even-calculator.html">
+  <meta property="og:site_name" content="HousingKit">
+  <meta property="og:image" content="https://devtoolbox.dedyn.io/og/default.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Refinance Break-Even Calculator - HousingKit">
+  <meta name="twitter:description" content="Estimate refinance timing and total-cost impact based on your remaining balance and terms.">
+  <meta name="twitter:image" content="https://devtoolbox.dedyn.io/og/default.png">
+  <link rel="stylesheet" href="/housingkit/style.css">
+</head>
+<body>
+  <div class="site-wrap">
+    <header class="topbar">
+      <a class="brand" href="/housingkit/">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span>HousingKit</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/housingkit/">Home</a>
+        <a href="/housingkit/mortgage-calculator.html">Mortgage</a>
+        <a href="/housingkit/home-affordability-calculator.html">Affordability</a>
+        <a href="/housingkit/rent-vs-buy-calculator.html">Rent vs Buy</a>
+        <a href="/kits/">All Kits</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="panel hero">
+        <h1>Refinance Break-Even Calculator <span class="badge">Timing check</span></h1>
+        <p>Compare current and new terms to estimate monthly savings, break-even month, and remaining-term net cost difference.</p>
+      </section>
+
+      <section class="panel card">
+        <div class="grid form-grid">
+          <div>
+            <label for="balance">Remaining loan balance ($)</label>
+            <input id="balance" type="number" min="1000" step="1000" value="320000">
+          </div>
+          <div>
+            <label for="currentRate">Current rate (%)</label>
+            <input id="currentRate" type="number" min="0" step="0.01" value="7.25">
+          </div>
+          <div>
+            <label for="currentYears">Years remaining (current loan)</label>
+            <input id="currentYears" type="number" min="1" max="40" step="1" value="26">
+          </div>
+          <div>
+            <label for="newRate">New refinance rate (%)</label>
+            <input id="newRate" type="number" min="0" step="0.01" value="6.10">
+          </div>
+          <div>
+            <label for="newYears">New loan term (years)</label>
+            <input id="newYears" type="number" min="1" max="40" step="1" value="30">
+          </div>
+          <div>
+            <label for="closingCosts">Refinance closing costs ($)</label>
+            <input id="closingCosts" type="number" min="0" step="500" value="6500">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" onclick="runCalc()">Analyze Refinance</button>
+        </div>
+
+        <div id="result" class="result" role="status" aria-live="polite">
+          Enter values and run calculation.
+        </div>
+      </section>
+
+      <section class="panel card" style="margin-top:14px;">
+        <h3>Interpretation tip</h3>
+        <p class="small">If break-even is longer than how long you plan to keep the loan, the refinance may not pay off despite a lower rate.</p>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function formatMoney(value) {
+      return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+    }
+
+    function payment(principal, annualRatePct, years) {
+      const months = years * 12;
+      if (months <= 0) {
+        return 0;
+      }
+      const r = annualRatePct / 100 / 12;
+      if (r === 0) {
+        return principal / months;
+      }
+      return principal * r / (1 - Math.pow(1 + r, -months));
+    }
+
+    function runCalc() {
+      const balance = Number(document.getElementById("balance").value);
+      const currentRate = Number(document.getElementById("currentRate").value);
+      const currentYears = Number(document.getElementById("currentYears").value);
+      const newRate = Number(document.getElementById("newRate").value);
+      const newYears = Number(document.getElementById("newYears").value);
+      const closingCosts = Number(document.getElementById("closingCosts").value);
+      const result = document.getElementById("result");
+
+      if (balance <= 0 || currentYears <= 0 || newYears <= 0 || currentRate < 0 || newRate < 0 || closingCosts < 0) {
+        result.className = "result warn";
+        result.textContent = "Enter valid values above zero for balance and terms.";
+        return;
+      }
+
+      const oldPayment = payment(balance, currentRate, currentYears);
+      const newPayment = payment(balance, newRate, newYears);
+      const monthlySavings = oldPayment - newPayment;
+
+      const oldTotalRemaining = oldPayment * currentYears * 12;
+      const newTotalRemaining = (newPayment * newYears * 12) + closingCosts;
+      const netLifetimeSavings = oldTotalRemaining - newTotalRemaining;
+
+      let breakEvenText = "No monthly savings (break-even not reached).";
+      if (monthlySavings > 0) {
+        const months = closingCosts / monthlySavings;
+        breakEvenText = months.toFixed(1) + " months";
+      }
+
+      const cssClass = monthlySavings > 0 ? "result ok" : "result warn";
+      result.className = cssClass;
+      result.innerHTML =
+        "<strong>Monthly payment change: " + formatMoney(monthlySavings) + "</strong>" +
+        "<ul>" +
+        "<li>Current payment: " + formatMoney(oldPayment) + " / month</li>" +
+        "<li>New payment: " + formatMoney(newPayment) + " / month</li>" +
+        "<li>Break-even timing: " + breakEvenText + "</li>" +
+        "<li>Current remaining total: " + formatMoney(oldTotalRemaining) + "</li>" +
+        "<li>New remaining total (with closing costs): " + formatMoney(newTotalRemaining) + "</li>" +
+        "<li>Net remaining-term difference: " + formatMoney(netLifetimeSavings) + "</li>" +
+        "</ul>";
+    }
+
+    runCalc();
+  </script>
+</body>
+</html>

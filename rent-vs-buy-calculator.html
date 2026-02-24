@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rent vs Buy Calculator - HousingKit</title>
+  <meta name="description" content="Compare estimated rent and ownership net costs over your planned stay horizon.">
+  <meta name="keywords" content="rent vs buy calculator, renting vs buying house calculator, home ownership cost calculator">
+  <link rel="canonical" href="https://devtoolbox.dedyn.io/housingkit/rent-vs-buy-calculator.html">
+  <meta name="robots" content="index,follow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Rent vs Buy Calculator - HousingKit">
+  <meta property="og:description" content="Estimate long-horizon cost tradeoffs between renting and buying a home.">
+  <meta property="og:url" content="https://devtoolbox.dedyn.io/housingkit/rent-vs-buy-calculator.html">
+  <meta property="og:site_name" content="HousingKit">
+  <meta property="og:image" content="https://devtoolbox.dedyn.io/og/default.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Rent vs Buy Calculator - HousingKit">
+  <meta name="twitter:description" content="Estimate long-horizon cost tradeoffs between renting and buying a home.">
+  <meta name="twitter:image" content="https://devtoolbox.dedyn.io/og/default.png">
+  <link rel="stylesheet" href="/housingkit/style.css">
+</head>
+<body>
+  <div class="site-wrap">
+    <header class="topbar">
+      <a class="brand" href="/housingkit/">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span>HousingKit</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/housingkit/">Home</a>
+        <a href="/housingkit/mortgage-calculator.html">Mortgage</a>
+        <a href="/housingkit/home-affordability-calculator.html">Affordability</a>
+        <a href="/housingkit/refinance-break-even-calculator.html">Refinance</a>
+        <a href="/kits/">All Kits</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="panel hero">
+        <h1>Rent vs Buy Calculator <span class="badge">Horizon model</span></h1>
+        <p>Compare estimated total rent outflow against ownership net cost after equity recovery and selling costs.</p>
+      </section>
+
+      <section class="panel card">
+        <div class="grid form-grid">
+          <div>
+            <label for="monthlyRent">Current monthly rent ($)</label>
+            <input id="monthlyRent" type="number" min="0" step="50" value="2400">
+          </div>
+          <div>
+            <label for="rentGrowth">Annual rent increase (%)</label>
+            <input id="rentGrowth" type="number" min="0" step="0.1" value="3.0">
+          </div>
+          <div>
+            <label for="homePrice">Home purchase price ($)</label>
+            <input id="homePrice" type="number" min="10000" step="1000" value="430000">
+          </div>
+          <div>
+            <label for="downPaymentPct">Down payment (%)</label>
+            <input id="downPaymentPct" type="number" min="0" max="100" step="0.1" value="20">
+          </div>
+          <div>
+            <label for="mortgageRate">Mortgage rate (%)</label>
+            <input id="mortgageRate" type="number" min="0" step="0.01" value="6.50">
+          </div>
+          <div>
+            <label for="loanYears">Loan term (years)</label>
+            <input id="loanYears" type="number" min="1" max="40" step="1" value="30">
+          </div>
+          <div>
+            <label for="taxRate">Property tax rate (% / year)</label>
+            <input id="taxRate" type="number" min="0" step="0.01" value="1.20">
+          </div>
+          <div>
+            <label for="insuranceYear">Home insurance per year ($)</label>
+            <input id="insuranceYear" type="number" min="0" step="100" value="1700">
+          </div>
+          <div>
+            <label for="maintenanceRate">Maintenance (% of home value / year)</label>
+            <input id="maintenanceRate" type="number" min="0" step="0.1" value="1.0">
+          </div>
+          <div>
+            <label for="hoaMonth">HOA per month ($)</label>
+            <input id="hoaMonth" type="number" min="0" step="10" value="0">
+          </div>
+          <div>
+            <label for="buyClosingPct">Buy closing costs (% of price)</label>
+            <input id="buyClosingPct" type="number" min="0" step="0.1" value="3.0">
+          </div>
+          <div>
+            <label for="sellClosingPct">Sell costs (% of sale price)</label>
+            <input id="sellClosingPct" type="number" min="0" step="0.1" value="6.0">
+          </div>
+          <div>
+            <label for="appreciation">Annual home appreciation (%)</label>
+            <input id="appreciation" type="number" step="0.1" value="2.5">
+          </div>
+          <div>
+            <label for="yearsToStay">Years to stay</label>
+            <input id="yearsToStay" type="number" min="1" max="40" step="1" value="7">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" onclick="runCalc()">Compare Rent vs Buy</button>
+        </div>
+
+        <div id="result" class="result" role="status" aria-live="polite">
+          Enter values and run calculation.
+        </div>
+      </section>
+
+      <section class="panel card" style="margin-top:14px;">
+        <h3>Interpretation tip</h3>
+        <p class="small">Run conservative, baseline, and optimistic scenarios for appreciation and rent growth to avoid overconfidence from one assumption set.</p>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function formatMoney(value) {
+      return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+    }
+
+    function monthlyPayment(principal, annualRatePct, years) {
+      const n = years * 12;
+      if (n <= 0) {
+        return 0;
+      }
+      const r = annualRatePct / 100 / 12;
+      if (r === 0) {
+        return principal / n;
+      }
+      return principal * r / (1 - Math.pow(1 + r, -n));
+    }
+
+    function remainingBalance(principal, annualRatePct, years, paidMonths) {
+      const n = years * 12;
+      const k = Math.min(Math.max(0, paidMonths), n);
+      if (n <= 0) {
+        return 0;
+      }
+      const r = annualRatePct / 100 / 12;
+      if (r === 0) {
+        return principal * Math.max(0, (n - k) / n);
+      }
+      const powN = Math.pow(1 + r, n);
+      const powK = Math.pow(1 + r, k);
+      return principal * (powN - powK) / (powN - 1);
+    }
+
+    function runCalc() {
+      const monthlyRent = Number(document.getElementById("monthlyRent").value);
+      const rentGrowth = Number(document.getElementById("rentGrowth").value);
+      const homePrice = Number(document.getElementById("homePrice").value);
+      const downPaymentPct = Number(document.getElementById("downPaymentPct").value);
+      const mortgageRate = Number(document.getElementById("mortgageRate").value);
+      const loanYears = Number(document.getElementById("loanYears").value);
+      const taxRate = Number(document.getElementById("taxRate").value);
+      const insuranceYear = Number(document.getElementById("insuranceYear").value);
+      const maintenanceRate = Number(document.getElementById("maintenanceRate").value);
+      const hoaMonth = Number(document.getElementById("hoaMonth").value);
+      const buyClosingPct = Number(document.getElementById("buyClosingPct").value);
+      const sellClosingPct = Number(document.getElementById("sellClosingPct").value);
+      const appreciation = Number(document.getElementById("appreciation").value);
+      const yearsToStay = Number(document.getElementById("yearsToStay").value);
+      const result = document.getElementById("result");
+
+      if (monthlyRent < 0 || homePrice <= 0 || downPaymentPct < 0 || downPaymentPct > 100 || loanYears <= 0 || yearsToStay <= 0) {
+        result.className = "result warn";
+        result.textContent = "Enter valid positive values. Down payment must be between 0 and 100.";
+        return;
+      }
+
+      let totalRent = 0;
+      for (let year = 0; year < yearsToStay; year += 1) {
+        const annualRent = monthlyRent * 12 * Math.pow(1 + (rentGrowth / 100), year);
+        totalRent += annualRent;
+      }
+
+      const downPayment = homePrice * (downPaymentPct / 100);
+      const loanAmount = Math.max(0, homePrice - downPayment);
+      const mortgageMonthly = monthlyPayment(loanAmount, mortgageRate, loanYears);
+      const monthsToStay = yearsToStay * 12;
+      const paidMonths = Math.min(monthsToStay, loanYears * 12);
+      const mortgagePaid = mortgageMonthly * paidMonths;
+
+      let variableOwnerCosts = 0;
+      for (let year = 0; year < yearsToStay; year += 1) {
+        const projectedValue = homePrice * Math.pow(1 + (appreciation / 100), year);
+        const annualTax = projectedValue * (taxRate / 100);
+        const annualMaintenance = projectedValue * (maintenanceRate / 100);
+        variableOwnerCosts += annualTax + annualMaintenance + insuranceYear + (hoaMonth * 12);
+      }
+
+      const buyClosingCost = homePrice * (buyClosingPct / 100);
+      const futureValue = homePrice * Math.pow(1 + (appreciation / 100), yearsToStay);
+      const sellCosts = futureValue * (sellClosingPct / 100);
+      const remaining = remainingBalance(loanAmount, mortgageRate, loanYears, monthsToStay);
+      const equityAfterSale = Math.max(0, futureValue - remaining - sellCosts);
+
+      const ownerGrossOutflow = downPayment + buyClosingCost + mortgagePaid + variableOwnerCosts;
+      const ownerNetCost = ownerGrossOutflow - equityAfterSale;
+      const difference = totalRent - ownerNetCost;
+
+      const verdict = difference > 0
+        ? "Buying is cheaper in this scenario by " + formatMoney(difference)
+        : "Renting is cheaper in this scenario by " + formatMoney(Math.abs(difference));
+
+      result.className = difference > 0 ? "result ok" : "result warn";
+      result.innerHTML =
+        "<strong>" + verdict + "</strong>" +
+        "<ul>" +
+        "<li>Estimated total rent cost: " + formatMoney(totalRent) + "</li>" +
+        "<li>Estimated owner gross outflow: " + formatMoney(ownerGrossOutflow) + "</li>" +
+        "<li>Estimated equity recovered after sale: " + formatMoney(equityAfterSale) + "</li>" +
+        "<li>Estimated owner net cost: " + formatMoney(ownerNetCost) + "</li>" +
+        "<li>Projected home value at sale: " + formatMoney(futureValue) + "</li>" +
+        "<li>Remaining loan balance at sale: " + formatMoney(remaining) + "</li>" +
+        "</ul>";
+    }
+
+    runCalc();
+  </script>
+</body>
+</html>

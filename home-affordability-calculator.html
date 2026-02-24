@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home Affordability Calculator - HousingKit</title>
+  <meta name="description" content="Estimate maximum home price based on income, debt, down payment, rate, and DTI targets.">
+  <meta name="keywords" content="home affordability calculator, dti calculator, how much house can i afford">
+  <link rel="canonical" href="https://devtoolbox.dedyn.io/housingkit/home-affordability-calculator.html">
+  <meta name="robots" content="index,follow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Home Affordability Calculator - HousingKit">
+  <meta property="og:description" content="Use DTI constraints and ownership assumptions to estimate a practical home-price range.">
+  <meta property="og:url" content="https://devtoolbox.dedyn.io/housingkit/home-affordability-calculator.html">
+  <meta property="og:site_name" content="HousingKit">
+  <meta property="og:image" content="https://devtoolbox.dedyn.io/og/default.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Home Affordability Calculator - HousingKit">
+  <meta name="twitter:description" content="Use DTI constraints and ownership assumptions to estimate a practical home-price range.">
+  <meta name="twitter:image" content="https://devtoolbox.dedyn.io/og/default.png">
+  <link rel="stylesheet" href="/housingkit/style.css">
+</head>
+<body>
+  <div class="site-wrap">
+    <header class="topbar">
+      <a class="brand" href="/housingkit/">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span>HousingKit</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/housingkit/">Home</a>
+        <a href="/housingkit/mortgage-calculator.html">Mortgage</a>
+        <a href="/housingkit/refinance-break-even-calculator.html">Refinance</a>
+        <a href="/housingkit/rent-vs-buy-calculator.html">Rent vs Buy</a>
+        <a href="/kits/">All Kits</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="panel hero">
+        <h1>Home Affordability Calculator <span class="badge">DTI guardrails</span></h1>
+        <p>Estimate maximum home price from income, debt, and ownership-cost assumptions with front-end and back-end DTI limits.</p>
+      </section>
+
+      <section class="panel card">
+        <div class="grid form-grid">
+          <div>
+            <label for="incomeAnnual">Gross annual income ($)</label>
+            <input id="incomeAnnual" type="number" min="0" step="1000" value="120000">
+          </div>
+          <div>
+            <label for="debtMonthly">Existing monthly debt payments ($)</label>
+            <input id="debtMonthly" type="number" min="0" step="10" value="450">
+          </div>
+          <div>
+            <label for="downPaymentCash">Down payment cash ($)</label>
+            <input id="downPaymentCash" type="number" min="0" step="1000" value="70000">
+          </div>
+          <div>
+            <label for="interestRate">Mortgage interest rate (%)</label>
+            <input id="interestRate" type="number" min="0" step="0.01" value="6.50">
+          </div>
+          <div>
+            <label for="loanYears">Loan term (years)</label>
+            <input id="loanYears" type="number" min="1" max="50" step="1" value="30">
+          </div>
+          <div>
+            <label for="taxRate">Property tax rate (% of home value / year)</label>
+            <input id="taxRate" type="number" min="0" step="0.01" value="1.20">
+          </div>
+          <div>
+            <label for="insuranceYear">Insurance per year ($)</label>
+            <input id="insuranceYear" type="number" min="0" step="100" value="1700">
+          </div>
+          <div>
+            <label for="hoaMonth">HOA per month ($)</label>
+            <input id="hoaMonth" type="number" min="0" step="10" value="0">
+          </div>
+          <div>
+            <label for="frontDti">Front-end DTI (%)</label>
+            <input id="frontDti" type="number" min="10" max="60" step="0.5" value="28">
+          </div>
+          <div>
+            <label for="backDti">Back-end DTI (%)</label>
+            <input id="backDti" type="number" min="10" max="70" step="0.5" value="36">
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" onclick="runCalc()">Estimate Affordability</button>
+        </div>
+
+        <div id="result" class="result" role="status" aria-live="polite">
+          Enter values and run calculation.
+        </div>
+      </section>
+
+      <section class="panel card" style="margin-top:14px;">
+        <h3>Interpretation tip</h3>
+        <p class="small">This output is a planning ceiling, not a recommendation. Test lower budgets to leave room for savings goals and irregular expenses.</p>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function formatMoney(value) {
+      return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+    }
+
+    function paymentForPrice(homePrice, downPaymentCash, annualRatePct, years, taxRatePct, insuranceYear, hoaMonth) {
+      const loanAmount = Math.max(0, homePrice - downPaymentCash);
+      const months = years * 12;
+      const monthlyRate = annualRatePct / 100 / 12;
+      let pi = 0;
+      if (loanAmount > 0 && months > 0) {
+        if (monthlyRate === 0) {
+          pi = loanAmount / months;
+        } else {
+          pi = loanAmount * monthlyRate / (1 - Math.pow(1 + monthlyRate, -months));
+        }
+      }
+      const tax = (homePrice * (taxRatePct / 100)) / 12;
+      const insurance = insuranceYear / 12;
+      return pi + tax + insurance + hoaMonth;
+    }
+
+    function runCalc() {
+      const incomeAnnual = Number(document.getElementById("incomeAnnual").value);
+      const debtMonthly = Number(document.getElementById("debtMonthly").value);
+      const downPaymentCash = Number(document.getElementById("downPaymentCash").value);
+      const interestRate = Number(document.getElementById("interestRate").value);
+      const loanYears = Number(document.getElementById("loanYears").value);
+      const taxRate = Number(document.getElementById("taxRate").value);
+      const insuranceYear = Number(document.getElementById("insuranceYear").value);
+      const hoaMonth = Number(document.getElementById("hoaMonth").value);
+      const frontDti = Number(document.getElementById("frontDti").value);
+      const backDti = Number(document.getElementById("backDti").value);
+      const result = document.getElementById("result");
+
+      if (incomeAnnual <= 0 || loanYears <= 0 || frontDti <= 0 || backDti <= 0 || interestRate < 0) {
+        result.className = "result warn";
+        result.textContent = "Enter valid values above zero for income, DTI, and loan term.";
+        return;
+      }
+
+      const monthlyIncome = incomeAnnual / 12;
+      const maxHousingByFront = monthlyIncome * (frontDti / 100);
+      const maxHousingByBack = Math.max(0, (monthlyIncome * (backDti / 100)) - debtMonthly);
+      const targetHousing = Math.max(0, Math.min(maxHousingByFront, maxHousingByBack));
+
+      const fixedCosts = (insuranceYear / 12) + hoaMonth;
+      if (targetHousing <= fixedCosts) {
+        result.className = "result warn";
+        result.innerHTML =
+          "<strong>No feasible budget under current constraints.</strong>" +
+          "<ul><li>Monthly housing cap: " + formatMoney(targetHousing) + "</li>" +
+          "<li>Fixed monthly costs (insurance + HOA): " + formatMoney(fixedCosts) + "</li></ul>";
+        return;
+      }
+
+      let low = 0;
+      let high = 5000000;
+      for (let i = 0; i < 70; i += 1) {
+        const mid = (low + high) / 2;
+        const monthly = paymentForPrice(mid, downPaymentCash, interestRate, loanYears, taxRate, insuranceYear, hoaMonth);
+        if (monthly > targetHousing) {
+          high = mid;
+        } else {
+          low = mid;
+        }
+      }
+
+      const maxHomePrice = low;
+      const estimatedHousing = paymentForPrice(maxHomePrice, downPaymentCash, interestRate, loanYears, taxRate, insuranceYear, hoaMonth);
+      const totalDebtWithHousing = estimatedHousing + debtMonthly;
+      const frontActual = (estimatedHousing / monthlyIncome) * 100;
+      const backActual = (totalDebtWithHousing / monthlyIncome) * 100;
+
+      result.className = "result ok";
+      result.innerHTML =
+        "<strong>Estimated maximum home price: " + formatMoney(maxHomePrice) + "</strong>" +
+        "<ul>" +
+        "<li>Estimated monthly housing cost: " + formatMoney(estimatedHousing) + "</li>" +
+        "<li>Front-end cap used: " + formatMoney(maxHousingByFront) + " / month</li>" +
+        "<li>Back-end cap used: " + formatMoney(maxHousingByBack) + " / month</li>" +
+        "<li>Estimated front-end DTI at this price: " + frontActual.toFixed(1) + "%</li>" +
+        "<li>Estimated back-end DTI at this price: " + backActual.toFixed(1) + "%</li>" +
+        "</ul>";
+    }
+
+    runCalc();
+  </script>
+</body>
+</html>
